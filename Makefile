@@ -6,7 +6,8 @@ PORT ?= 8000
 EDITOR ?= micro
 
 chat_ollama: ## Command to start the server
-	@echo "Starting Server For Chat Ollama UI."
+	@echo "Starting Server For Chat Ollama UI"
+	@echo "   localhost:$(PORT)/index.html"
 	@python3 -m http.server $(PORT)
 
 edit: ## Edit this Makefile
