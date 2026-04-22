@@ -8,57 +8,89 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="topbar">
-    <label for="model">Model</label>
-    <input id="model" type="text" placeholder="Specify model" />
+  <div class="app-shell">
+    <aside id="settingsSidebar" class="settings-sidebar">
+      <div class="settings-header">
+        <button
+          id="sidebarToggleBtn"
+          class="icon-btn"
+          type="button"
+          title="Collapse or expand settings"
+        >
+          ☰
+        </button>
+        <div class="settings-title">Settings</div>
+      </div>
 
-    <label for="modelDropdown">Installed Models</label>
-    <select id="modelDropdown">
-      <option value="" disabled selected>Select model</option>
-    </select>
+      <div class="settings-panel">
+        <div class="settings-group">
+          <label for="model">Model</label>
+          <input id="model" type="text" placeholder="Specify model" />
+        </div>
 
-    <button id="refreshModelsBtn" class="action" type="button">Refresh Models</button>
+        <div class="settings-group">
+          <div class="label-row">
+            <label for="modelDropdown">Installed Models</label>
+            <button
+              id="refreshModelsBtn"
+              class="icon-btn"
+              type="button"
+              title="Refresh models"
+              aria-label="Refresh models"
+            >
+              ↻
+            </button>
+          </div>
 
-    <label for="host">Ollama Host</label>
-    <input
-      id="host"
-      type="text"
-      value="http://localhost:11434"
-      style="min-width: 250px;"
-    />
+          <select id="modelDropdown" title="Select model">
+            <option value="" disabled selected>Select model</option>
+          </select>
+        </div>
 
-    <label for="apiPath">API Path</label>
-    <input
-      id="apiPath"
-      type="text"
-      value="/api/chat"
-      style="min-width: 140px;"
-    />
+        <div class="settings-group">
+          <label for="host">Ollama Host</label>
+          <input id="host" type="text" value="http://localhost:11434" />
+        </div>
 
-    <label class="toggle-wrap">
-      <input id="thinkToggle" type="checkbox" />
-      <span>Request Thinking</span>
-    </label>
+        <div class="settings-group">
+          <label for="apiPath">API Path</label>
+          <input id="apiPath" type="text" value="/api/chat" />
+        </div>
 
-    <label class="toggle-wrap">
-      <input id="streamToggle" type="checkbox" checked />
-      <span>Stream Response</span>
-    </label>
+        <div class="settings-group">
+          <label class="toggle-wrap">
+            <input id="thinkToggle" type="checkbox" />
+            <span>Request Thinking</span>
+          </label>
+        </div>
 
-    <span class="muted">Thinking and streaming preferences are reused for future replies.</span>
-  </div>
+        <div class="settings-group">
+          <label class="toggle-wrap">
+            <input id="streamToggle" type="checkbox" checked />
+            <span>Stream Response</span>
+          </label>
+        </div>
 
-  <div id="chat" class="chat-wrap"></div>
+        <div class="settings-note muted">
+          Thinking and streaming preferences are reused for future replies.
+        </div>
+      </div>
+    </aside>
 
-  <div class="composer">
-    <div class="input-wrap">
-      <textarea id="prompt" placeholder="Write your message in markdown..."></textarea>
-      <div class="muted">Enter to send. Shift+Enter for new line.</div>
-    </div>
-    <div class="composer-actions">
-      <button id="clearBtn" class="action">Clear</button>
-      <button id="sendBtn" class="action primary">Send</button>
-    </div>
+    <main class="main-pane">
+      <div id="chat" class="chat-wrap"></div>
+
+      <div class="composer">
+        <div class="input-wrap">
+          <textarea id="prompt" placeholder="Write your message in markdown..."></textarea>
+          <div class="muted">Enter to send. Shift+Enter for new line.</div>
+        </div>
+        <div class="composer-actions">
+          <button id="clearBtn" class="action">Clear</button>
+          <button id="sendBtn" class="action primary">Send</button>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
