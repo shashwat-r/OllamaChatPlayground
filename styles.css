@@ -1,3 +1,7 @@
+:root {
+  --top-bar-height: 56px;
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -12,7 +16,7 @@ body {
 .app-shell {
   height: 100vh;
   display: flex;
-  flex-direction: row;
+  flex-direction: row-reverse;
   background: #0f1115;
 }
 
@@ -22,7 +26,8 @@ body {
   max-width: 320px;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #222;
+  border-left: 1px solid #222;
+  border-right: none;
   background: #15181f;
   transition: width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease;
   overflow: hidden;
@@ -35,12 +40,20 @@ body {
 }
 
 .settings-header {
+  height: var(--top-bar-height);
+  padding: 0 12px;
+
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
-  gap: 10px;
-  padding: 12px;
+  justify-content: space-between;
+
   border-bottom: 1px solid #222;
   background: #15181f;
+}
+
+.settings-sidebar.collapsed .settings-header {
+  justify-content: flex-start;
 }
 
 .settings-title {
@@ -122,6 +135,29 @@ textarea:focus {
   color: #ccc;
 }
 
+.title-bar {
+  height: var(--top-bar-height);
+  padding: 0 16px;
+
+  border-bottom: 1px solid #222;
+  background: #15181f;
+
+  font-size: 20px;        /* increased from 16px */
+  font-weight: 700;       /* slightly bolder */
+
+  color: #ddd;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;              /* more spacing for larger icon */
+}
+
+.title-icon {
+  width: 24px;            /* increased from ~18px */
+  height: 24px;
+  object-fit: contain;
+}
+
 .chat-wrap {
   flex: 1;
   overflow-y: auto;
@@ -130,6 +166,35 @@ textarea:focus {
   flex-direction: column;
   gap: 14px;
   background: #0f1115;
+}
+
+.empty-state {
+  margin: auto;
+  text-align: center;
+  color: #8a93a5;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+
+  opacity: 0.9;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+.empty-text {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.empty-state {
+  transition: opacity 0.2s ease;
 }
 
 .main-pane {
@@ -298,6 +363,12 @@ textarea:focus {
   gap: 6px;
 }
 
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .icon-btn,
 .action {
   border: 1px solid #333;
@@ -344,10 +415,10 @@ textarea:focus {
   border-top: 1px solid #222;
   background: #15181f;
   padding: 12px;
-  display: grid;
-  grid-template-columns: 1fr auto;
+
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: end;
 }
 
 .input-wrap {
@@ -370,6 +441,7 @@ textarea {
 
 .composer-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 8px;
 }
 
