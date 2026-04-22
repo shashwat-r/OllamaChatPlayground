@@ -1,3 +1,6 @@
+// ========================================
+// DOM REFERENCES
+// ========================================
 const chatEl = document.getElementById("chat");
 const emptyStateEl = document.getElementById("emptyState");
 const promptEl = document.getElementById("prompt");
@@ -13,6 +16,13 @@ const streamToggle = document.getElementById("streamToggle");
 const settingsSidebar = document.getElementById("settingsSidebar");
 const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
 
+const sidebarResizeHandle = document.getElementById("sidebarResizeHandle");
+const composerResizeHandle = document.getElementById("composerResizeHandle");
+const composerEl = document.getElementById("composer");
+
+// ========================================
+// APP STATE
+// ========================================
 let messages = [];
 let lastUserText = "";
 let isGenerating = false;
@@ -20,11 +30,31 @@ let thinkingDefaultExpanded = true;
 let abortController = null;
 let durationInterval = null;
 
+// ========================================
+// LAYOUT CONSTANTS
+// ========================================
+const SIDEBAR_COLLAPSED_WIDTH = 64;
+const SIDEBAR_DEFAULT_WIDTH = 320;
+const SIDEBAR_MIN_WIDTH = 220;
+const SIDEBAR_MAX_WIDTH = 700;
+
+const COMPOSER_DEFAULT_HEIGHT = 180;
+const COMPOSER_TEXTAREA_MIN_HEIGHT = 90;
+const COMPOSER_MAX_HEIGHT_RATIO = 0.7;
+
+let expandedSidebarWidth = SIDEBAR_DEFAULT_WIDTH;
+
+// ========================================
+// MARKDOWN SETUP
+// ========================================
 marked.setOptions({
   gfm: true,
   breaks: true
 });
 
+// ========================================
+// RENDERING HELPERS
+// ========================================
 function renderMarkdown(md) {
   const raw = marked.parse(md || "");
   return DOMPurify.sanitize(raw);
@@ -34,6 +64,9 @@ function scrollToBottom() {
   chatEl.scrollTop = chatEl.scrollHeight;
 }
 
+// ========================================
+// FORMAT HELPERS
+// ========================================
 function formatClockTime(date) {
   return new Date(date).toLocaleTimeString([], {
     hour: "2-digit",
@@ -68,9 +101,15 @@ function formatBytes(bytes) {
   return `${bytes.toFixed(1)} ${units[i]}`;
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+// ========================================
+// UI STATE HELPERS
+// ========================================
 function updateEmptyState() {
   const hasMessages = chatEl.querySelector(".row");
-
   if (hasMessages) {
     emptyStateEl.style.display = "none";
   } else {
@@ -88,6 +127,9 @@ function updateSendButtonState() {
   }
 }
 
+// ========================================
+// CLIPBOARD / ERROR HELPERS
+// ========================================
 async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -112,6 +154,9 @@ async function extractErrorFromResponse(response) {
   return `HTTP ${response.status} ${response.statusText}`;
 }
 
+// ========================================
+// URL / API HELPERS
+// ========================================
 function normalizeHost(host) {
   return (host || "").trim().replace(/\/+$/, "");
 }
@@ -154,6 +199,9 @@ function syncModelDropdownTitle() {
   modelDropdown.title = selectedOption ? selectedOption.textContent : "";
 }
 
+// ========================================
+// KEYBOARD / FOCUS HELPERS
+// ========================================
 function isEditableElement(el) {
   if (!el) return false;
 
@@ -164,7 +212,6 @@ function isEditableElement(el) {
 function shouldRedirectKeyToPrompt(e) {
   if (e.defaultPrevented) return false;
   if (e.isComposing) return false;
-
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
 
   const ignoredKeys = new Set([
@@ -191,6 +238,80 @@ function scrollChatToBottom() {
   chatEl.scrollTo({ top: chatEl.scrollHeight, behavior: "smooth" });
 }
 
+// ========================================
+// SIDEBAR / COMPOSER SIZE HELPERS
+// ========================================
+function applySidebarWidth(width) {
+  const safeWidth = clamp(width, SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, Math.floor(window.innerWidth / 2)));
+  expandedSidebarWidth = safeWidth;
+
+  if (!settingsSidebar.classList.contains("collapsed")) {
+    settingsSidebar.style.width = `${safeWidth}px`;
+    settingsSidebar.style.minWidth = `${safeWidth}px`;
+    settingsSidebar.style.maxWidth = `${safeWidth}px`;
+  }
+}
+
+function setSidebarCollapsedStyles() {
+  settingsSidebar.style.width = `${SIDEBAR_COLLAPSED_WIDTH}px`;
+  settingsSidebar.style.minWidth = `${SIDEBAR_COLLAPSED_WIDTH}px`;
+  settingsSidebar.style.maxWidth = `${SIDEBAR_COLLAPSED_WIDTH}px`;
+}
+
+function syncSidebarResizeAvailability() {
+  if (!sidebarResizeHandle) return;
+  const collapsed = settingsSidebar.classList.contains("collapsed");
+  sidebarResizeHandle.style.display = collapsed ? "none" : "block";
+}
+
+function getComposerMinHeight() {
+  if (!composerEl) return COMPOSER_TEXTAREA_MIN_HEIGHT;
+
+  const composerStyles = window.getComputedStyle(composerEl);
+  const inputWrap = composerEl.querySelector(".input-wrap");
+  const helperText = inputWrap?.querySelector(".muted");
+  const composerActions = composerEl.querySelector(".composer-actions");
+
+  const paddingTop = parseFloat(composerStyles.paddingTop) || 0;
+  const paddingBottom = parseFloat(composerStyles.paddingBottom) || 0;
+  const rowGap = parseFloat(composerStyles.gap) || 0;
+
+  const inputWrapStyles = inputWrap ? window.getComputedStyle(inputWrap) : null;
+  const inputGap = inputWrapStyles ? (parseFloat(inputWrapStyles.gap) || 0) : 0;
+
+  const helperHeight = helperText ? helperText.getBoundingClientRect().height : 0;
+  const actionsHeight = composerActions ? composerActions.getBoundingClientRect().height : 0;
+
+  return Math.ceil(
+    paddingTop +
+    paddingBottom +
+    rowGap +
+    COMPOSER_TEXTAREA_MIN_HEIGHT +
+    inputGap +
+    helperHeight +
+    actionsHeight
+  );
+}
+
+function getComposerMaxHeight() {
+  return Math.floor(window.innerHeight * COMPOSER_MAX_HEIGHT_RATIO);
+}
+
+function applyComposerHeight(height) {
+  if (!composerEl) return;
+  const safeHeight = clamp(height, getComposerMinHeight(), getComposerMaxHeight());
+  composerEl.style.height = `${safeHeight}px`;
+}
+
+function ensureComposerHeightFitsViewport() {
+  if (!composerEl) return;
+  const currentHeight = composerEl.getBoundingClientRect().height || COMPOSER_DEFAULT_HEIGHT;
+  applyComposerHeight(currentHeight);
+}
+
+// ========================================
+// MODEL LOADING
+// ========================================
 async function loadModelList() {
   const previousValue = modelDropdown.value;
   modelDropdown.innerHTML = `<option value="" disabled selected>Select model</option>`;
@@ -274,6 +395,9 @@ async function loadModelList() {
   }
 }
 
+// ========================================
+// MESSAGE CARD FACTORY
+// ========================================
 function createMessageCard(role, rawText, opts = {}) {
   const row = document.createElement("div");
   row.className = `row ${role}`;
@@ -486,6 +610,9 @@ function createMessageCard(role, rawText, opts = {}) {
   return api;
 }
 
+// ========================================
+// MESSAGE CLEANUP HELPERS
+// ========================================
 function removeLastAssistantFromState() {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === "assistant") {
@@ -502,6 +629,9 @@ function removeLastAssistantFromUI() {
   }
 }
 
+// ========================================
+// CHAT REQUEST / STREAMING
+// ========================================
 async function streamChat(userText, isRegenerate = false) {
   const trimmed = userText.trim();
   if (!trimmed || isGenerating) return;
@@ -747,8 +877,89 @@ async function regenerateLastAssistant() {
   await streamChat(lastUserText, true);
 }
 
+// ========================================
+// RESIZER BINDINGS
+// ========================================
+function bindSidebarResizer() {
+  if (!sidebarResizeHandle) return;
+
+  let startX = 0;
+  let startWidth = expandedSidebarWidth;
+  let dragging = false;
+
+  const onMouseMove = (e) => {
+    if (!dragging) return;
+    const dx = startX - e.clientX;
+    applySidebarWidth(startWidth + dx);
+  };
+
+  const onMouseUp = () => {
+    dragging = false;
+    document.body.classList.remove("is-resizing");
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
+
+  sidebarResizeHandle.addEventListener("mousedown", (e) => {
+    if (settingsSidebar.classList.contains("collapsed")) return;
+
+    dragging = true;
+    startX = e.clientX;
+    startWidth = settingsSidebar.getBoundingClientRect().width || expandedSidebarWidth;
+
+    document.body.classList.add("is-resizing");
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    e.preventDefault();
+  });
+}
+
+function bindComposerResizer() {
+  if (!composerResizeHandle || !composerEl) return;
+
+  let startY = 0;
+  let startHeight = COMPOSER_DEFAULT_HEIGHT;
+  let dragging = false;
+
+  const onMouseMove = (e) => {
+    if (!dragging) return;
+    const dy = startY - e.clientY;
+    applyComposerHeight(startHeight + dy);
+  };
+
+  const onMouseUp = () => {
+    dragging = false;
+    document.body.classList.remove("is-resizing");
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
+
+  composerResizeHandle.addEventListener("mousedown", (e) => {
+    dragging = true;
+    startY = e.clientY;
+    startHeight = composerEl.getBoundingClientRect().height || COMPOSER_DEFAULT_HEIGHT;
+
+    document.body.classList.add("is-resizing");
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    e.preventDefault();
+  });
+}
+
+// ========================================
+// CONTROL EVENT BINDINGS
+// ========================================
 sidebarToggleBtn.addEventListener("click", () => {
+  const willCollapse = !settingsSidebar.classList.contains("collapsed");
   settingsSidebar.classList.toggle("collapsed");
+
+  if (willCollapse) {
+    setSidebarCollapsedStyles();
+  } else {
+    applySidebarWidth(expandedSidebarWidth);
+  }
+
+  syncSidebarResizeAvailability();
 });
 
 modelDropdown.addEventListener("change", () => {
@@ -801,10 +1012,12 @@ promptEl.addEventListener("keydown", async (e) => {
   }
 });
 
+// ========================================
+// DOCUMENT-LEVEL KEYBOARD BINDINGS
+// ========================================
 document.addEventListener("keydown", (e) => {
   const active = document.activeElement;
 
-  // ⬆️⬇️ Scroll shortcuts (Cmd/Ctrl + Arrow)
   if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey) {
     if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -819,9 +1032,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // Do not interfere with typing fields
   if (isEditableElement(active)) return;
-
   if (!shouldRedirectKeyToPrompt(e)) return;
 
   promptEl.focus();
@@ -867,6 +1078,9 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// ========================================
+// CLEAR ACTION
+// ========================================
 clearBtn.addEventListener("click", () => {
   if (abortController) {
     abortController.abort();
@@ -876,7 +1090,7 @@ clearBtn.addEventListener("click", () => {
     <div id="emptyState" class="empty-state">
       <img src="favicon.png" alt="App Icon" class="empty-icon" />
       <div class="empty-text">
-        Welcome to Chat Ollama UI 👋
+        Welcome to Chat Ollama 👋
       </div>
     </div>
   `;
@@ -897,10 +1111,30 @@ clearBtn.addEventListener("click", () => {
   promptEl.value = "";
   promptEl.focus();
 
-  // rebind reference after replacing innerHTML
   window.emptyStateEl = document.getElementById("emptyState");
 });
 
+// ========================================
+// WINDOW-LEVEL EVENTS
+// ========================================
+window.addEventListener("resize", () => {
+  if (!settingsSidebar.classList.contains("collapsed")) {
+    applySidebarWidth(expandedSidebarWidth);
+  } else {
+    setSidebarCollapsedStyles();
+  }
+
+  ensureComposerHeightFitsViewport();
+});
+
+// ========================================
+// APP INITIALIZATION
+// ========================================
 updateSendButtonState();
+applySidebarWidth(expandedSidebarWidth);
+syncSidebarResizeAvailability();
+applyComposerHeight(COMPOSER_DEFAULT_HEIGHT);
+bindSidebarResizer();
+bindComposerResizer();
 loadModelList();
 updateEmptyState();
