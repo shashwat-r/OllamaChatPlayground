@@ -1137,5 +1137,4 @@ syncSidebarResizeAvailability();
 applyComposerHeight(COMPOSER_DEFAULT_HEIGHT);
 bindSidebarResizer();
 bindComposerResizer();
-loadModelList();
 updateEmptyState();
