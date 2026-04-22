@@ -1,4 +1,5 @@
 const chatEl = document.getElementById("chat");
+const emptyStateEl = document.getElementById("emptyState");
 const promptEl = document.getElementById("prompt");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
@@ -65,6 +66,16 @@ function formatBytes(bytes) {
   }
 
   return `${bytes.toFixed(1)} ${units[i]}`;
+}
+
+function updateEmptyState() {
+  const hasMessages = chatEl.querySelector(".row");
+
+  if (hasMessages) {
+    emptyStateEl.style.display = "none";
+  } else {
+    emptyStateEl.style.display = "flex";
+  }
 }
 
 function updateSendButtonState() {
@@ -400,6 +411,7 @@ function createMessageCard(role, rawText, opts = {}) {
   row.appendChild(card);
   chatEl.appendChild(row);
   scrollToBottom();
+  updateEmptyState();
 
   function syncThinkingVisibility() {
     if (!thinkingBox || !thinkingBtn) return;
@@ -859,8 +871,16 @@ clearBtn.addEventListener("click", () => {
   if (abortController) {
     abortController.abort();
   }
-  chatEl.innerHTML = "";
-  promptEl.value = "";
+
+  chatEl.innerHTML = `
+    <div id="emptyState" class="empty-state">
+      <img src="favicon.png" alt="App Icon" class="empty-icon" />
+      <div class="empty-text">
+        Welcome to Chat Ollama UI 👋
+      </div>
+    </div>
+  `;
+
   messages = [];
   lastUserText = "";
   isGenerating = false;
@@ -873,31 +893,14 @@ clearBtn.addEventListener("click", () => {
 
   sendBtn.disabled = false;
   updateSendButtonState();
+
+  promptEl.value = "";
   promptEl.focus();
+
+  // rebind reference after replacing innerHTML
+  window.emptyStateEl = document.getElementById("emptyState");
 });
-
-const requestStartedAt = new Date();
-const requestStartedMs = Date.now();
-
-const assistantCard = createMessageCard(
-  "assistant",
-  `# Streaming Markdown Chat
-
-- Assistant on the left
-- User on the right
-- Type a model name or pick one from Installed Models
-- Settings are in the collapsible sidebar on the left
-- Request Thinking toggle sends \`think: true/false\`
-- Stream Response toggle sends \`stream: true/false\`
-- Thinking is collapsible per message
-- Thinking and streaming preferences are reused for future replies
-- Errors are shown in the response and also added as \`system\` messages`,
-  {
-    startTime: requestStartedAt
-  }
-);
-
-assistantCard.setDurationMs(Date.now() - requestStartedMs);
 
 updateSendButtonState();
 loadModelList();
+updateEmptyState();

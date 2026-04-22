@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="favicon.png">
-  <title>Ollama Chat with Thinking</title>
+  <title>Chat Ollama</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -17,7 +17,7 @@
           type="button"
           title="Collapse or expand settings"
         >
-          ☰
+          ⚙
         </button>
         <div class="settings-title">Settings</div>
       </div>
@@ -78,7 +78,19 @@
     </aside>
 
     <main class="main-pane">
-      <div id="chat" class="chat-wrap"></div>
+      <div class="title-bar">
+        <img src="favicon.png" alt="App Icon" class="title-icon" />
+        <span>Chat Ollama</span>
+      </div>
+
+      <div id="chat" class="chat-wrap">
+        <div id="emptyState" class="empty-state">
+          <img src="favicon.png" alt="App Icon" class="empty-icon" />
+          <div class="empty-text">
+            Welcome to Chat Ollama UI 👋
+          </div>
+        </div>
+      </div>
 
       <div class="composer">
         <div class="input-wrap">
