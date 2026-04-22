@@ -1,4 +1,4 @@
-<p align="center"><img src="/favicon.png" height="128" width="128"/></p>
+<p align="center"><a href="https://shashwat-r.github.io/OllamaChatPlayground/" target="_blank"><img src="/favicon.png" height="128" width="128" alt="Open Preview"/></a></p>
 
 # Ollama Chat Playground
 
