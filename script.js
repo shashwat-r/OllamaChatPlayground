@@ -8,6 +8,9 @@ const refreshModelsBtn = document.getElementById("refreshModelsBtn");
 const hostEl = document.getElementById("host");
 const apiPathEl = document.getElementById("apiPath");
 const thinkToggle = document.getElementById("thinkToggle");
+const streamToggle = document.getElementById("streamToggle");
+const settingsSidebar = document.getElementById("settingsSidebar");
+const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
 
 let messages = [];
 let lastUserText = "";
@@ -135,6 +138,11 @@ function buildTagsUrl() {
   return `${host}/api/tags`;
 }
 
+function syncModelDropdownTitle() {
+  const selectedOption = modelDropdown.options[modelDropdown.selectedIndex];
+  modelDropdown.title = selectedOption ? selectedOption.textContent : "";
+}
+
 async function loadModelList() {
   const previousValue = modelDropdown.value;
   modelDropdown.innerHTML = `<option value="" disabled selected>Select model</option>`;
@@ -197,6 +205,8 @@ async function loadModelList() {
     } else {
       modelDropdown.value = "";
     }
+
+    syncModelDropdownTitle();
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     modelDropdown.innerHTML = `<option value="" disabled selected>Select model</option>`;
@@ -688,10 +698,15 @@ async function regenerateLastAssistant() {
   await streamChat(lastUserText, true);
 }
 
+sidebarToggleBtn.addEventListener("click", () => {
+  settingsSidebar.classList.toggle("collapsed");
+});
+
 modelDropdown.addEventListener("change", () => {
   if (modelDropdown.value) {
     modelEl.value = modelDropdown.value;
   }
+  syncModelDropdownTitle();
 });
 
 modelEl.addEventListener("input", () => {
@@ -705,6 +720,7 @@ modelEl.addEventListener("input", () => {
   } else {
     modelDropdown.value = "";
   }
+  syncModelDropdownTitle();
 });
 
 refreshModelsBtn.addEventListener("click", loadModelList);
@@ -751,8 +767,8 @@ clearBtn.addEventListener("click", () => {
   promptEl.focus();
 });
 
-let requestStartedAt = new Date();
-let requestStartedMs = Date.now();
+const requestStartedAt = new Date();
+const requestStartedMs = Date.now();
 
 const assistantCard = createMessageCard(
   "assistant",
@@ -761,12 +777,11 @@ const assistantCard = createMessageCard(
 - Assistant on the left
 - User on the right
 - Type a model name or pick one from Installed Models
-- "Select model" stays as the first dropdown option
-- Ollama Host and API Path are stored separately
-- Refresh Models uses the host value to query installed models
+- Settings are in the collapsible sidebar on the left
 - Request Thinking toggle sends \`think: true/false\`
+- Stream Response toggle sends \`stream: true/false\`
 - Thinking is collapsible per message
-- Thinking preference is reused for future replies
+- Thinking and streaming preferences are reused for future replies
 - Errors are shown in the response and also added as \`system\` messages`,
   {
     startTime: requestStartedAt
