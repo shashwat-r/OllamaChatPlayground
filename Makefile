@@ -4,11 +4,12 @@
 # Define the defaults
 PORT ?= 8000
 EDITOR ?= micro
+PYTHON ?= python3
 
 chat_ollama: ## Command to start the server
-	@echo "Starting Server For Chat Ollama UI"
-	@echo "   localhost:$(PORT)/index.html"
-	@python3 -m http.server $(PORT)
+	@echo "Starting Server For Chat Ollama UI: http://localhost:$(PORT)/index.html"
+	@$(PYTHON) -m webbrowser -t "http://localhost:$(PORT)/index.html"
+	@$(PYTHON) -m http.server $(PORT)
 
 edit: ## Edit this Makefile
 	@$(EDITOR) Makefile
