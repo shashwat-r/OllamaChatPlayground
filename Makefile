@@ -6,8 +6,8 @@ PORT ?= 8000
 EDITOR ?= micro
 PYTHON ?= python3
 
-chat_ollama: ## Command to start the server
-	@echo "Starting Server For Chat Ollama UI: http://localhost:$(PORT)/index.html"
+ollama_chat_playground: ## Command to start the server
+	@echo "Starting Server For Ollama Chat Playground: http://localhost:$(PORT)/index.html"
 	@$(PYTHON) -m webbrowser -t "http://localhost:$(PORT)/index.html"
 	@$(PYTHON) -m http.server $(PORT)
 

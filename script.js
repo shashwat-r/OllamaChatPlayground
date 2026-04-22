@@ -1091,7 +1091,7 @@ clearBtn.addEventListener("click", () => {
     <div id="emptyState" class="empty-state">
       <img src="favicon.png" alt="App Icon" class="empty-icon" />
       <div class="empty-text">
-        Welcome to Chat Ollama 👋
+        Welcome to Ollama Chat Playground 👋
       </div>
     </div>
   `;
