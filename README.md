@@ -1,3 +1,5 @@
+<p align="center"><img src="/favicon.png" height="128" width="128"/></p>
+
 # ChatOllama
 
 Simple Chat Interface For Ollama
