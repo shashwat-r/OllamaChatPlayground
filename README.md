@@ -1,8 +1,8 @@
 <p align="center"><img src="/favicon.png" height="128" width="128"/></p>
 
-# ChatOllama
+# Ollama Chat Playground
 
-Simple Chat Interface For Ollama
+Simple Local Chat Interface For Ollama
 
 ### Usage
 - Clone or Download the files in this repo.
