@@ -33,13 +33,13 @@ let durationInterval = null;
 // ========================================
 // LAYOUT CONSTANTS
 // ========================================
-const SIDEBAR_COLLAPSED_WIDTH = 64;
+const SIDEBAR_COLLAPSED_WIDTH = 0;
 const SIDEBAR_DEFAULT_WIDTH = 320;
 const SIDEBAR_MIN_WIDTH = 220;
 const SIDEBAR_MAX_WIDTH = 700;
 
 const COMPOSER_DEFAULT_HEIGHT = 180;
-const COMPOSER_TEXTAREA_MIN_HEIGHT = 90;
+const COMPOSER_TEXTAREA_MIN_HEIGHT = 100;
 const COMPOSER_MAX_HEIGHT_RATIO = 0.7;
 
 let expandedSidebarWidth = SIDEBAR_DEFAULT_WIDTH;
@@ -891,7 +891,7 @@ function bindSidebarResizer() {
   const onMouseMove = (e) => {
     if (!dragging) return;
     const dx = startX - e.clientX;
-    applySidebarWidth(startWidth + dx);
+    applySidebarWidth(startWidth - dx);
   };
 
   const onMouseUp = () => {

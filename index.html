@@ -20,11 +20,23 @@
   <!-- ========================= -->
   <div class="app-shell">
     <!-- ========================= -->
-    <!-- SETTINGS SIDEBAR -->
+    <!-- GLOBAL TITLE BAR -->
     <!-- ========================= -->
-    <aside id="settingsSidebar" class="settings-sidebar">
-      <!-- SETTINGS HEADER -->
-      <div class="settings-header">
+    <div class="title-bar">
+      <div class="title-bar-brand">
+        <img src="favicon.png" alt="App Icon" class="title-icon" />
+        <span>Ollama Chat Playground</span>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- CONTENT SHELL -->
+    <!-- ========================= -->
+    <div class="content-shell">
+      <!-- ========================= -->
+      <!-- SETTINGS RAIL -->
+      <!-- ========================= -->
+      <div class="settings-rail">
         <button
           id="sidebarToggleBtn"
           class="icon-btn"
@@ -33,114 +45,120 @@
         >
           ⚙
         </button>
-        <div class="settings-title">Settings</div>
       </div>
 
-      <!-- SETTINGS PANEL -->
-      <div class="settings-panel">
-        <!-- MODEL INPUT -->
-        <div class="settings-group">
-          <label for="model">Model</label>
-          <input id="model" type="text" placeholder="Specify model" />
-        </div>
+      <!-- ========================= -->
+      <!-- SETTINGS SIDEBAR -->
+      <!-- ========================= -->
+      <aside id="settingsSidebar" class="settings-sidebar">
+        <!-- SETTINGS PANEL -->
+        <div class="settings-panel">
+          <!-- SETTINGS TITLE -->
+          <div class="settings-title">Settings</div>
 
-        <!-- INSTALLED MODELS -->
-        <div class="settings-group">
-          <div class="label-row">
-            <label for="modelDropdown">Installed Models</label>
-            <button
-              id="refreshModelsBtn"
-              class="icon-btn"
-              type="button"
-              title="Refresh models"
-              aria-label="Refresh models"
-            >
-              ↻
-            </button>
+          <!-- MODEL INPUT -->
+          <div class="settings-group">
+            <label for="model">Model</label>
+            <input id="model" type="text" placeholder="Specify model" />
           </div>
 
-          <select id="modelDropdown" title="Select model">
-            <option value="" disabled selected>Select model</option>
-          </select>
-        </div>
+          <!-- INSTALLED MODELS -->
+          <div class="settings-group">
+            <div class="label-row">
+              <label for="modelDropdown">Installed Models</label>
+              <button
+                id="refreshModelsBtn"
+                class="icon-btn"
+                type="button"
+                title="Refresh models"
+                aria-label="Refresh models"
+              >
+                ↻
+              </button>
+            </div>
 
-        <!-- CONNECTION SETTINGS -->
-        <div class="settings-group">
-          <label for="host">Ollama Host</label>
-          <input id="host" type="text" value="http://localhost:11434" />
-        </div>
+            <select id="modelDropdown" title="Select model">
+              <option value="" disabled selected>Select model</option>
+            </select>
+          </div>
 
-        <div class="settings-group">
-          <label for="apiPath">API Path</label>
-          <input id="apiPath" type="text" value="/api/chat" />
-        </div>
+          <!-- CONNECTION SETTINGS -->
+          <div class="settings-group">
+            <label for="host">Ollama Host</label>
+            <input id="host" type="text" value="http://localhost:11434" />
+          </div>
 
-        <!-- REQUEST OPTIONS -->
-        <div class="settings-group">
-          <label class="toggle-wrap">
-            <input id="thinkToggle" type="checkbox" />
-            <span>Request Thinking</span>
-          </label>
-        </div>
+          <div class="settings-group">
+            <label for="apiPath">API Path</label>
+            <input id="apiPath" type="text" value="/api/chat" />
+          </div>
 
-        <div class="settings-group">
-          <label class="toggle-wrap">
-            <input id="streamToggle" type="checkbox" checked />
-            <span>Stream Response</span>
-          </label>
-        </div>
+          <!-- REQUEST OPTIONS -->
+          <div class="settings-group">
+            <label class="toggle-wrap">
+              <input id="thinkToggle" type="checkbox" />
+              <span>Request Thinking</span>
+            </label>
+          </div>
 
-        <!-- SETTINGS NOTE -->
-        <div class="settings-note muted">
-          Thinking and streaming preferences are reused for future replies.
-        </div>
-      </div>
-    </aside>
+          <div class="settings-group">
+            <label class="toggle-wrap">
+              <input id="streamToggle" type="checkbox" checked />
+              <span>Stream Response</span>
+            </label>
+          </div>
 
-    <!-- ========================= -->
-    <!-- SIDEBAR RESIZE HANDLE -->
-    <!-- ========================= -->
-    <div id="sidebarResizeHandle" class="sidebar-resize-handle" title="Drag to resize settings panel"></div>
-
-    <!-- ========================= -->
-    <!-- MAIN PANE -->
-    <!-- ========================= -->
-    <main class="main-pane">
-      <!-- TITLE BAR -->
-      <div class="title-bar">
-        <img src="favicon.png" alt="App Icon" class="title-icon" />
-        <span>Ollama Chat Playground</span>
-      </div>
-
-      <!-- CHAT AREA -->
-      <div id="chat" class="chat-wrap">
-        <!-- EMPTY STATE -->
-        <div id="emptyState" class="empty-state">
-          <img src="favicon.png" alt="App Icon" class="empty-icon" />
-          <div class="empty-text">
-            Welcome to Ollama Chat Playground 👋
+          <!-- SETTINGS NOTE -->
+          <div class="settings-note muted">
+            Thinking and streaming preferences are reused for future replies.
           </div>
         </div>
-      </div>
+      </aside>
 
-      <!-- COMPOSER RESIZE HANDLE -->
-      <div id="composerResizeHandle" class="composer-resize-handle" title="Drag to resize chat composer"></div>
+      <!-- SIDEBAR RESIZE HANDLE -->
+      <div id="sidebarResizeHandle" class="sidebar-resize-handle" title="Drag to resize settings panel"></div>
 
-      <!-- MESSAGE COMPOSER -->
-      <div id="composer" class="composer">
-        <!-- INPUT AREA -->
-        <div class="input-wrap">
-          <textarea id="prompt" placeholder="Write your message in markdown..."></textarea>
-          <div class="muted">Enter to send. Shift+Enter for new line.</div>
+      <!-- ========================= -->
+      <!-- MAIN PANE -->
+      <!-- ========================= -->
+      <main class="main-pane">
+        <!-- CHAT AREA -->
+        <div id="chat" class="chat-wrap">
+          <!-- EMPTY STATE -->
+          <div id="emptyState" class="empty-state">
+            <img src="favicon.png" alt="App Icon" class="empty-icon" />
+            <div class="empty-text">
+              Welcome to Ollama Chat Playground 👋
+            </div>
+          </div>
         </div>
 
-        <!-- COMPOSER ACTIONS -->
-        <div class="composer-actions">
-          <button id="clearBtn" class="action">Clear</button>
-          <button id="sendBtn" class="action primary">Send</button>
+        <!-- COMPOSER RESIZE HANDLE -->
+        <div id="composerResizeHandle" class="composer-resize-handle" title="Drag to resize chat composer"></div>
+
+        <!-- MESSAGE COMPOSER -->
+        <div id="composer" class="composer">
+          <!-- PROMPT REGION -->
+          <div class="composer-prompt-region">
+            <!-- INPUT AREA -->
+            <div class="input-wrap">
+              <textarea id="prompt" placeholder="Write your message in markdown..."></textarea>
+            </div>
+          </div>
+
+          <!-- FIXED FOOTER REGION -->
+          <div class="composer-footer-region">
+            <div class="muted">Enter to send. Shift+Enter for new line.</div>
+
+            <!-- COMPOSER ACTIONS -->
+            <div class="composer-actions">
+              <button id="clearBtn" class="action">Clear</button>
+              <button id="sendBtn" class="action primary">Send</button>
+            </div>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 
   <!-- ========================= -->
