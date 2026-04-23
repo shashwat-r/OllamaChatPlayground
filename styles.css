@@ -1,5 +1,37 @@
 :root {
-  --top-bar-height: 56px;
+  --top-bar-height: 64px;
+
+  /* Colors */
+  --bg-body: #0f1115;
+  --bg-surface: #15181f;
+  --bg-surface-2: #1a1f28;
+  --bg-surface-3: #141820;
+  --bg-code: #0b0d12;
+
+  --text-primary: #e6e6e6;
+  --text-secondary: #ddd;
+  --text-muted: #8a93a5;
+
+  --border-subtle: #222;
+  --border-default: #333;
+  --border-strong: #2a2f3a;
+
+  --accent-primary: #3a6df0;
+  --accent-primary-hover: #5a84f5;
+
+  --btn-bg-hover: #252b36;
+
+  --card-user-bg: #202532;
+  --card-user-border: #323848;
+
+  --card-system-bg: #2a1f1f;
+  --card-system-border: #5a2a2a;
+
+  --code-inline-bg: #2a2f3a;
+  --code-text: #f0f0f0;
+
+  --resize-handle: #5f6673;
+  --resize-handle-hover: #7a8291;
 }
 
 /* =========================
@@ -10,8 +42,8 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #0f1115;
-  color: #e6e6e6;
+  background: var(--bg-body);
+  color: var(--text-primary);
   height: 100vh;
   overflow: hidden;
 }
@@ -27,61 +59,64 @@ body.is-resizing {
 .app-shell {
   height: 100vh;
   display: flex;
-  flex-direction: row-reverse;
-  background: #0f1115;
+  flex-direction: column;
+  background: var(--bg-body);
+}
+
+.content-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
 }
 
 .main-pane {
   flex: 1;
   min-width: 0;
-  height: 100vh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+}
+/* =========================
+   Settings Rail
+   ========================= */
+.settings-rail {
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.settings-rail .icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
 }
 
 /* =========================
    Settings Sidebar
    ========================= */
 .settings-sidebar {
-  width: 320px;
-  min-width: 320px;
-  max-width: 320px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #222;
+  border-right: 1px solid var(--border-subtle);
   border-right: none;
-  background: #15181f;
+  background: var(--bg-surface);
   transition: width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease;
   overflow: hidden;
 }
 
-.settings-sidebar.collapsed {
-  width: 64px;
-  min-width: 64px;
-  max-width: 64px;
-}
-
-.settings-header {
-  height: var(--top-bar-height);
-  padding: 0 12px;
-
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  justify-content: space-between;
-
-  border-bottom: 1px solid #222;
-  background: #15181f;
-}
-
-.settings-sidebar.collapsed .settings-header {
-  justify-content: flex-start;
-}
-
 .settings-title {
-  font-size: 14px;
+  padding: 0px 0px 6px 0px;
+  font-size: 20px;
   font-weight: 700;
-  color: #ddd;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -93,7 +128,7 @@ body.is-resizing {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px;
+  padding: 12px 0px 12px 12px;
   overflow-y: auto;
 }
 
@@ -116,9 +151,9 @@ body.is-resizing {
 .settings-group select {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
-  background: #0f1115;
+  background: var(--bg-body);
   color: #eee;
   font: inherit;
 }
@@ -150,9 +185,9 @@ textarea:focus {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-default);
   border-radius: 10px;
-  background: #1a1f28;
+  background: var(--bg-surface-2);
   font-size: 14px;
   color: #ccc;
 }
@@ -162,32 +197,10 @@ textarea:focus {
    ========================= */
 .sidebar-resize-handle {
   position: relative;
-  width: 10px;
+  width: 12px;
   cursor: ew-resize;
-  background: transparent;
-  flex: 0 0 10px;
-}
-
-.sidebar-resize-handle::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 2px;
-  height: 36px;
-  transform: translate(-50%, -50%);
-  background: #5f6673;
-  border-radius: 999px;
-  opacity: 0.9;
-}
-
-.sidebar-resize-handle:hover::before {
-  background: #7a8291;
-}
-
-.settings-sidebar.collapsed + .sidebar-resize-handle,
-.settings-sidebar.collapsed ~ .sidebar-resize-handle {
-  display: none;
+  background: var(--bg-surface);
+  flex: 0 0 12px;
 }
 
 /* =========================
@@ -195,27 +208,10 @@ textarea:focus {
    ========================= */
 .composer-resize-handle {
   position: relative;
-  height: 10px;
+  height: 16px;
   cursor: ns-resize;
   background: transparent;
-  flex: 0 0 10px;
-}
-
-.composer-resize-handle::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 48px;
-  height: 2px;
-  transform: translate(-50%, -50%);
-  background: #5f6673;
-  border-radius: 999px;
-  opacity: 0.9;
-}
-
-.composer-resize-handle:hover::before {
-  background: #7a8291;
+  flex: 0 0 16px;
 }
 
 /* =========================
@@ -224,43 +220,47 @@ textarea:focus {
 .title-bar {
   height: var(--top-bar-height);
   padding: 0 16px;
-
-  border-bottom: 1px solid #222;
-  background: #15181f;
-
-  font-size: 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  font-size: 30px;
   font-weight: 700;
-
-  color: #ddd;
-
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.title-bar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 12px;
 }
 
 .title-icon {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
-
 /* =========================
    Chat Area & Empty State
    ========================= */
 .chat-wrap {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 16px 16px 22px 16px;
+  margin-bottom: -10px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: #0f1115;
+  background: transparent;
 }
 
 .empty-state {
   margin: auto;
   text-align: center;
-  color: #8a93a5;
+  color: var(--text-muted);
 
   display: flex;
   flex-direction: column;
@@ -308,8 +308,8 @@ textarea:focus {
 
 .card {
   width: min(760px, 82%);
-  background: #1a1f28;
-  border: 1px solid #2a2f3a;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-strong);
   border-radius: 14px;
   overflow: hidden;
   display: flex;
@@ -318,13 +318,13 @@ textarea:focus {
 }
 
 .row.user .card {
-  background: #202532;
-  border-color: #323848;
+  background: var(--card-user-bg);
+  border-color: var(--card-user-border);
 }
 
 .row.system .card {
-  background: #2a1f1f;
-  border-color: #5a2a2a;
+  background: var(--card-system-bg);
+  border-color: var(--card-system-border);
 }
 
 /* =========================
@@ -333,8 +333,8 @@ textarea:focus {
 .thinking-box {
   display: none;
   padding: 12px 16px;
-  border-bottom: 1px solid #2a2f3a;
-  background: #141820;
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--bg-surface-3);
 }
 
 .thinking-box.visible {
@@ -346,7 +346,7 @@ textarea:focus {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #8a93a5;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
@@ -404,8 +404,8 @@ textarea:focus {
 
 .thinking-content pre,
 .content pre {
-  background: #0b0d12;
-  color: #f0f0f0;
+  background: var(--bg-code);
+  color: var(--code-text);
   padding: 12px;
   border-radius: 10px;
   overflow-x: auto;
@@ -413,7 +413,7 @@ textarea:focus {
 
 .thinking-content code,
 .content code {
-  background: #2a2f3a;
+  background: var(--border-strong);
   padding: 2px 5px;
   border-radius: 6px;
 }
@@ -434,15 +434,15 @@ textarea:focus {
   align-items: flex-start;
   gap: 6px;
   padding: 8px 10px;
-  border-top: 1px solid #2a2f3a;
-  background: #141820;
+  border-top: 1px solid var(--border-strong);
+  background: var(--bg-surface-3);
 }
 
 .message-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  color: #8a93a5;
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.35;
   margin-right: auto;
@@ -461,9 +461,9 @@ textarea:focus {
 
 .icon-btn,
 .action {
-  border: 1px solid #333;
-  background: #1a1f28;
-  color: #ddd;
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
   border-radius: 8px;
   padding: 6px 9px;
   cursor: pointer;
@@ -479,42 +479,46 @@ textarea:focus {
 
 .icon-btn:hover,
 .action:hover {
-  background: #252b36;
+  background: var(--btn-bg-hover);
 }
 
 .icon-btn:disabled,
 .action:disabled {
-  background: #141820;
+  background: var(--bg-surface-3);
   color: #555;
-  border-color: #222;
+  border-color: var(--border-subtle);
   cursor: not-allowed;
   opacity: 1;
 }
 
 .primary {
-  background: #3a6df0;
+  background: var(--accent-primary);
   color: #fff;
-  border-color: #3a6df0;
+  border-color: var(--accent-primary);
 }
 
 .primary:hover {
-  background: #5a84f5;
+  background: var(--accent-primary-hover);
 }
 
 /* =========================
    Composer
    ========================= */
 .composer {
-  border-top: 1px solid #222;
-  background: #15181f;
-  padding: 12px;
+  background: transparent;
+  padding: 0px 12px 12px 12px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
 
   height: 180px;
   min-height: 120px;
+}
+
+.composer-prompt-region {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 .input-wrap {
@@ -525,16 +529,32 @@ textarea:focus {
   flex: 1;
 }
 
+.composer-footer-region {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.composer-footer-region .muted {
+  flex: 1;
+  min-height: -webkit-fill-available;
+  padding-left: 6px;
+}
+
 textarea {
   width: 100%;
   min-height: 90px;
   height: 100%;
   resize: none;
-  border: 1px solid #333;
+  border: 1px solid var(--border-default);
   border-radius: 12px;
+  margin-top: -8px;
   padding: 12px;
   font: inherit;
-  background: #0f1115;
+  background: var(--bg-body);
   color: #eee;
 }
 
@@ -542,13 +562,14 @@ textarea {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 /* =========================
    Shared Utility Styles
    ========================= */
 .muted {
-  color: #8a93a5;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -567,6 +588,12 @@ textarea {
    Responsive Adjustments
    ========================= */
 @media (max-width: 900px) {
+  .settings-rail {
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+  }
+
   .settings-sidebar {
     width: 280px;
     min-width: 280px;
@@ -576,4 +603,46 @@ textarea {
   .card {
     width: min(760px, 94%);
   }
+
+  .composer-footer-region {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .composer-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* =========================
+   Transparent Scrollbars
+   ========================= */
+
+/* Chrome, Edge, Safari */
+.chat-wrap::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-wrap::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-wrap::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+}
+
+.chat-wrap::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Firefox */
+.chat-wrap,
+textarea {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
