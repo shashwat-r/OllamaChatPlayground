@@ -4,7 +4,13 @@
 
 Simple Local Chat Interface For Ollama
 
-### Usage
+### Preview
+<i>* Subject to change with new UI updates.</i>
+<br>
+<br>
+<img src="/previews/preview-01.png">
+
+### Setup and Usage
 - Clone or Download the files in this repo.
 - Start your Ollama Server. You could use a remotely hosted Ollama instance, and have it's url handy, or, use the default Ollama Server that runs locally on
   - ```
