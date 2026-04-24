@@ -8,6 +8,7 @@ const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
 const modelEl = document.getElementById("model");
 const modelDropdown = document.getElementById("modelDropdown");
+const installedModelsLabel = document.getElementById("installedModelsLabel");
 const refreshModelsBtn = document.getElementById("refreshModelsBtn");
 const pullModelBtn = document.getElementById("pullModelBtn");
 const hostEl = document.getElementById("host");
@@ -78,7 +79,7 @@ function formatClockTime(date) {
 
 function formatDuration(ms) {
   if (typeof ms !== "number" || ms < 0) return "";
-  if (ms < 1000) return `${ms} ms`;
+  if (ms < 1000) return `${Math.round(ms)} ms`;
 
   const totalSeconds = ms / 1000;
   if (totalSeconds < 60) return `${totalSeconds.toFixed(1)} s`;
@@ -228,6 +229,11 @@ function syncModelDropdownTitle() {
   modelDropdown.title = selectedOption ? selectedOption.textContent : "";
 }
 
+function updateInstalledModelsLabel(count) {
+  if (!installedModelsLabel) return;
+  installedModelsLabel.textContent = `Installed Models (${count})`;
+}
+
 // ========================================
 // KEYBOARD / FOCUS HELPERS
 // ========================================
@@ -344,6 +350,7 @@ function ensureComposerHeightFitsViewport() {
 async function loadModelList() {
   const previousValue = modelDropdown.value;
   modelDropdown.innerHTML = `<option value="" disabled selected>Select model</option>`;
+  updateInstalledModelsLabel(0);
   modelDropdown.disabled = true;
   refreshModelsBtn.disabled = true;
 
@@ -383,6 +390,8 @@ async function loadModelList() {
       }))
       .filter(m => m.name);
 
+    updateInstalledModelsLabel(modelEntries.length);
+
     for (const m of modelEntries) {
       const option = document.createElement("option");
       option.value = m.name;
@@ -408,6 +417,7 @@ async function loadModelList() {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     modelDropdown.innerHTML = `<option value="" disabled selected>Select model</option>`;
+    updateInstalledModelsLabel(0);
 
     messages.push({
       role: "system",
@@ -508,12 +518,21 @@ function createMessageCard(role, rawText, opts = {}) {
   const row = document.createElement("div");
   row.className = `row ${role}`;
 
+  const cardShell = document.createElement("div");
+  cardShell.className = "card-shell";
+
   const card = document.createElement("div");
   card.className = "card";
 
+  const cardBody = document.createElement("div");
+  cardBody.className = "card-body";
+
+  const sideActions = document.createElement("div");
+  sideActions.className = "side-actions";
+
   let thinkingBox = null;
   let thinkingContent = null;
-  let thinkingBtn = null;
+  let thinkingCopyBtn = null;
   let thinkingTextValue = "";
   let thinkingExpanded = thinkingDefaultExpanded;
   let hasUserManuallyToggledThisCard = false;
@@ -521,109 +540,169 @@ function createMessageCard(role, rawText, opts = {}) {
   let messageStartTime = opts.startTime || null;
   let messageModel = opts.modelName || "";
   let messageDurationMs = opts.durationMs ?? null;
+  let messageLoadingMs = opts.loadingMs ?? null;
   let messageThinkingMs = opts.thinkingMs ?? null;
   let messageGenerationMs = opts.generationMs ?? null;
+
+  const meta = document.createElement("div");
+  meta.className = "message-meta top-message-meta";
+  cardShell.appendChild(meta);
+
+  function renderMeta() {
+    const hasDuration = messageDurationMs !== null && messageDurationMs !== undefined;
+    const hasLoading = messageLoadingMs !== null && messageLoadingMs !== undefined;
+    const hasThinking = messageThinkingMs !== null && messageThinkingMs !== undefined && messageThinkingMs > 0;
+    const hasGeneration = messageGenerationMs !== null && messageGenerationMs !== undefined;
+    const startLabel = messageStartTime ? formatClockTime(messageStartTime) : "";
+
+    if (role === "user") {
+      meta.innerHTML = ["You", startLabel].filter(Boolean).join(" • ");
+      return;
+    }
+
+    if (role === "assistant") {
+      const firstLine = [
+        "Model",
+        messageModel,
+        startLabel,
+        hasDuration ? formatDuration(messageDurationMs) : ""
+      ].filter(Boolean).join(" • ");
+
+      const secondLineParts = [];
+      if (hasLoading) {
+        secondLineParts.push(`⏳ ${formatDuration(messageLoadingMs)}`);
+      }
+      if (hasThinking) {
+        secondLineParts.push(`💭 ${formatDuration(messageThinkingMs)}`);
+      }
+      if (hasGeneration) {
+        secondLineParts.push(`💬 ${formatDuration(messageGenerationMs)}`);
+      }
+
+      const secondLine = secondLineParts.join(" • ");
+      meta.innerHTML = secondLine ? `${firstLine}<br>${secondLine}` : firstLine;
+      return;
+    }
+
+    if (role === "system") {
+      meta.innerHTML = [
+        "System",
+        startLabel,
+        hasDuration ? formatDuration(messageDurationMs) : ""
+      ].filter(Boolean).join(" • ");
+    }
+  }
+
+  renderMeta();
+
+  const messageUnit = document.createElement("div");
+  messageUnit.className = "message-unit";
 
   if (role === "assistant") {
     thinkingBox = document.createElement("div");
     thinkingBox.className = "thinking-box";
 
-    const thinkingTitle = document.createElement("div");
+    const thinkingHeader = document.createElement("div");
+    thinkingHeader.className = "thinking-header";
+
+    const thinkingTitle = document.createElement("button");
     thinkingTitle.className = "thinking-title";
+    thinkingTitle.type = "button";
     thinkingTitle.textContent = "Thinking";
+    thinkingTitle.title = "Show/Hide";
+
+    function toggleThinkingPanel() {
+      if (!thinkingTextValue.trim()) return;
+      hasUserManuallyToggledThisCard = true;
+      thinkingExpanded = !thinkingExpanded;
+      thinkingDefaultExpanded = thinkingExpanded;
+      syncThinkingVisibility();
+    }
+
+    thinkingHeader.title = "Show/Hide";
+    thinkingHeader.onclick = toggleThinkingPanel;
+    thinkingTitle.onclick = (e) => {
+      e.stopPropagation();
+      toggleThinkingPanel();
+    };
+
+    thinkingCopyBtn = document.createElement("button");
+    thinkingCopyBtn.className = "icon-btn block-copy-btn";
+    thinkingCopyBtn.title = "Copy thinking";
+    thinkingCopyBtn.textContent = "⧉";
+    thinkingCopyBtn.disabled = true;
+    thinkingCopyBtn.onclick = (e) => {
+      e.stopPropagation();
+      copyText(thinkingTextValue);
+    };
+
+    thinkingHeader.appendChild(thinkingTitle);
+    thinkingHeader.appendChild(thinkingCopyBtn);
 
     thinkingContent = document.createElement("div");
     thinkingContent.className = "thinking-content";
 
-    thinkingBox.appendChild(thinkingTitle);
+    const endThinkingPanel = document.createElement("button");
+    endThinkingPanel.className = "end-thinking-panel";
+    endThinkingPanel.type = "button";
+    endThinkingPanel.textContent = "End Of Thinking";
+    endThinkingPanel.title = "Show/Hide";
+    endThinkingPanel.onclick = () => {
+      if (!thinkingTextValue.trim()) return;
+      hasUserManuallyToggledThisCard = true;
+      thinkingExpanded = false;
+      thinkingDefaultExpanded = false;
+      syncThinkingVisibility();
+    };
+
+    thinkingBox.appendChild(thinkingHeader);
     thinkingBox.appendChild(thinkingContent);
-    card.appendChild(thinkingBox);
+    thinkingBox.appendChild(endThinkingPanel);
+    messageUnit.appendChild(thinkingBox);
   }
+
+  const outputBlock = document.createElement("div");
+  outputBlock.className = "output-block";
+
+  const outputHeader = document.createElement("div");
+  outputHeader.className = "output-header";
+
+  const outputTitle = document.createElement("div");
+  outputTitle.className = "output-title";
+  outputTitle.textContent = role === "assistant" ? "Response" : role === "user" ? "Message" : "System";
+
+  const outputCopyBtn = document.createElement("button");
+  outputCopyBtn.className = "icon-btn block-copy-btn";
+  outputCopyBtn.title = "Copy";
+  outputCopyBtn.textContent = "⧉";
+  outputCopyBtn.onclick = () => copyText(opts.getRawText ? opts.getRawText() : rawText);
+
+  outputHeader.appendChild(outputTitle);
+  outputHeader.appendChild(outputCopyBtn);
 
   const content = document.createElement("div");
   content.className = "content";
   content.innerHTML = renderMarkdown(rawText);
 
-  const toolbar = document.createElement("div");
-  toolbar.className = "bottom-toolbar";
+  outputBlock.appendChild(outputHeader);
+  outputBlock.appendChild(content);
+  messageUnit.appendChild(outputBlock);
 
-  const meta = document.createElement("div");
-  meta.className = "message-meta";
-  toolbar.appendChild(meta);
+  cardBody.appendChild(messageUnit);
 
-  const actions = document.createElement("div");
-  actions.className = "message-actions";
-  toolbar.appendChild(actions);
-
-  function renderMeta() {
-    const parts = [];
-
-    if (role === "user") {
-      if (messageStartTime) {
-        parts.push(`Started: ${formatClockTime(messageStartTime)}`);
-      }
-    } else if (role === "assistant") {
-      if (messageModel) {
-        parts.push(`Model: ${messageModel}`);
-      }
-      if (messageStartTime) {
-        parts.push(`Started: ${formatClockTime(messageStartTime)}`);
-      }
-      if (messageThinkingMs !== null && messageThinkingMs !== undefined) {
-        parts.push(`Thinking: ${formatDuration(messageThinkingMs)}`);
-      }
-      if (messageGenerationMs !== null && messageGenerationMs !== undefined) {
-        parts.push(`Generating: ${formatDuration(messageGenerationMs)}`);
-      }
-      if (messageDurationMs !== null && messageDurationMs !== undefined) {
-        parts.push(`Total: ${formatDuration(messageDurationMs)}`);
-      }
-    } else if (role === "system") {
-      if (messageStartTime) {
-        parts.push(`Started: ${formatClockTime(messageStartTime)}`);
-      }
-      if (messageDurationMs !== null && messageDurationMs !== undefined) {
-        parts.push(`Took: ${formatDuration(messageDurationMs)}`);
-      }
-    }
-
-    meta.innerHTML = parts.map(p => `• ${p}`).join("<br>");
+  if (role === "user") {
+    const editBtn = document.createElement("button");
+    editBtn.className = "icon-btn";
+    editBtn.title = "Edit";
+    editBtn.textContent = "✎";
+    editBtn.onclick = () => {
+      promptEl.value = opts.getRawText ? opts.getRawText() : rawText;
+      promptEl.focus();
+    };
+    sideActions.appendChild(editBtn);
   }
 
-  renderMeta();
-
-  const copyBtn = document.createElement("button");
-  copyBtn.className = "icon-btn";
-  copyBtn.title = "Copy";
-  copyBtn.textContent = "⧉";
-  copyBtn.onclick = () => copyText(opts.getRawText ? opts.getRawText() : rawText);
-  actions.appendChild(copyBtn);
-
-  const editBtn = document.createElement("button");
-  editBtn.className = "icon-btn";
-  editBtn.title = "Edit";
-  editBtn.textContent = "✎";
-  editBtn.onclick = () => {
-    promptEl.value = opts.getRawText ? opts.getRawText() : rawText;
-    promptEl.focus();
-  };
-  actions.appendChild(editBtn);
-
   if (role === "assistant") {
-    thinkingBtn = document.createElement("button");
-    thinkingBtn.className = "icon-btn";
-    thinkingBtn.title = "Show or hide thinking";
-    thinkingBtn.textContent = "🧠";
-    thinkingBtn.disabled = true;
-    thinkingBtn.onclick = () => {
-      if (thinkingBtn.disabled) return;
-      hasUserManuallyToggledThisCard = true;
-      thinkingExpanded = !thinkingExpanded;
-      thinkingDefaultExpanded = thinkingExpanded;
-      syncThinkingVisibility();
-    };
-    actions.appendChild(thinkingBtn);
-
     const regenBtn = document.createElement("button");
     regenBtn.className = "icon-btn";
     regenBtn.title = "Regenerate";
@@ -633,29 +712,36 @@ function createMessageCard(role, rawText, opts = {}) {
         regenerateLastAssistant();
       }
     };
-    actions.appendChild(regenBtn);
+    sideActions.appendChild(regenBtn);
   }
 
-  card.appendChild(content);
-  card.appendChild(toolbar);
-  row.appendChild(card);
+  card.appendChild(cardBody);
+  card.appendChild(sideActions);
+  cardShell.appendChild(card);
+  row.appendChild(cardShell);
   chatEl.appendChild(row);
   scrollToBottom();
   updateEmptyState();
 
   function syncThinkingVisibility() {
-    if (!thinkingBox || !thinkingBtn) return;
+    if (!thinkingBox || !thinkingCopyBtn) return;
 
     const hasThinking = thinkingTextValue.trim().length > 0;
-    thinkingBtn.disabled = !hasThinking;
-    thinkingBtn.textContent = hasThinking
-      ? (thinkingExpanded ? "🧠−" : "🧠+")
-      : "🧠";
+    thinkingCopyBtn.disabled = !hasThinking;
+
+    if (hasThinking) {
+      thinkingBox.classList.add("has-thinking");
+    } else {
+      thinkingBox.classList.remove("has-thinking");
+    }
 
     if (hasThinking && thinkingExpanded) {
       thinkingBox.classList.add("visible");
+      thinkingBox.classList.remove("collapsed");
+    } else if (hasThinking) {
+      thinkingBox.classList.add("visible", "collapsed");
     } else {
-      thinkingBox.classList.remove("visible");
+      thinkingBox.classList.remove("visible", "collapsed");
     }
   }
 
@@ -693,6 +779,10 @@ function createMessageCard(role, rawText, opts = {}) {
     },
     setDurationMs(newDurationMs) {
       messageDurationMs = newDurationMs;
+      renderMeta();
+    },
+    setLoadingMs(newLoadingMs) {
+      messageLoadingMs = newLoadingMs;
       renderMeta();
     },
     setThinkingMs(newThinkingMs) {
@@ -764,11 +854,42 @@ async function streamChat(userText, isRegenerate = false) {
   let assistantText = "";
   let assistantThinking = "";
 
-  let lastThinkingAt = null;
+  let firstThinkingAt = null;
   let firstContentAt = null;
 
+  let frozenLoadingMs = null;
   let frozenThinkingMs = null;
   let frozenGenerationStartMs = null;
+  let thinkingHappened = false;
+
+  function appendInterruptedMarker(text) {
+    const marker = "⚠️ Interrupted...";
+    const current = text || "";
+    if (current.includes(marker)) return current;
+    return current.trim() ? `${current} ${marker}` : marker;
+  }
+
+  function finalizeAssistantTiming(finishedAt) {
+    assistantCard.setDurationMs(finishedAt - requestStartedMs);
+
+    if (firstContentAt === null) {
+      if (firstThinkingAt !== null) {
+        frozenThinkingMs = finishedAt - firstThinkingAt;
+        assistantCard.setLoadingMs(frozenLoadingMs);
+        assistantCard.setThinkingMs(frozenThinkingMs);
+        assistantCard.setGenerationMs(0);
+      } else {
+        frozenLoadingMs = finishedAt - requestStartedMs;
+        assistantCard.setLoadingMs(frozenLoadingMs);
+        assistantCard.setThinkingMs(null);
+        assistantCard.setGenerationMs(0);
+      }
+    } else {
+      assistantCard.setLoadingMs(frozenLoadingMs);
+      assistantCard.setThinkingMs(thinkingHappened ? frozenThinkingMs : null);
+      assistantCard.setGenerationMs(finishedAt - frozenGenerationStartMs);
+    }
+  }
 
   const assistantCard = createMessageCard("assistant", "", {
     getRawText: () => assistantText,
@@ -789,11 +910,23 @@ async function streamChat(userText, isRegenerate = false) {
     const thinkPiece = chunk?.message?.thinking || "";
 
     if (thinkPiece) {
+      assistantCard.setTyping(false);
       const now = Date.now();
-      lastThinkingAt = now;
+
+      if (firstThinkingAt === null) {
+        firstThinkingAt = now;
+        frozenLoadingMs = now - requestStartedMs;
+        thinkingHappened = true;
+        assistantCard.setLoadingMs(frozenLoadingMs);
+        assistantCard.setThinkingMs(0);
+      }
 
       assistantThinking += thinkPiece;
       assistantCard.setThinkingText(assistantThinking);
+
+      if (firstContentAt === null) {
+        assistantCard.setThinkingMs(now - firstThinkingAt);
+      }
     }
 
     if (piece) {
@@ -802,8 +935,14 @@ async function streamChat(userText, isRegenerate = false) {
       if (firstContentAt === null) {
         firstContentAt = now;
         frozenGenerationStartMs = now;
-        frozenThinkingMs = (lastThinkingAt ?? now) - requestStartedMs;
-        assistantCard.setThinkingMs(frozenThinkingMs);
+
+        if (firstThinkingAt !== null) {
+          frozenThinkingMs = now - firstThinkingAt;
+          assistantCard.setThinkingMs(frozenThinkingMs);
+        } else {
+          frozenLoadingMs = now - requestStartedMs;
+          assistantCard.setLoadingMs(frozenLoadingMs);
+        }
       }
 
       assistantText += piece;
@@ -816,13 +955,23 @@ async function streamChat(userText, isRegenerate = false) {
     const now = Date.now();
     assistantCard.setDurationMs(now - requestStartedMs);
 
-    if (frozenThinkingMs === null) {
-      assistantCard.setThinkingMs(now - requestStartedMs);
+    if (firstThinkingAt === null && firstContentAt === null) {
+      assistantCard.setLoadingMs(now - requestStartedMs);
+      assistantCard.setThinkingMs(null);
       assistantCard.setGenerationMs(null);
-    } else {
-      assistantCard.setThinkingMs(frozenThinkingMs);
-      assistantCard.setGenerationMs(now - frozenGenerationStartMs);
+      return;
     }
+
+    if (firstThinkingAt !== null && firstContentAt === null) {
+      assistantCard.setLoadingMs(frozenLoadingMs);
+      assistantCard.setThinkingMs(now - firstThinkingAt);
+      assistantCard.setGenerationMs(null);
+      return;
+    }
+
+    assistantCard.setLoadingMs(frozenLoadingMs);
+    assistantCard.setThinkingMs(thinkingHappened ? frozenThinkingMs : null);
+    assistantCard.setGenerationMs(now - frozenGenerationStartMs);
   }, 250);
 
   try {
@@ -898,16 +1047,7 @@ async function streamChat(userText, isRegenerate = false) {
     }
 
     const finishedAt = Date.now();
-    assistantCard.setDurationMs(finishedAt - requestStartedMs);
-
-    if (frozenThinkingMs === null) {
-      frozenThinkingMs = finishedAt - requestStartedMs;
-      assistantCard.setThinkingMs(frozenThinkingMs);
-      assistantCard.setGenerationMs(0);
-    } else {
-      assistantCard.setThinkingMs(frozenThinkingMs);
-      assistantCard.setGenerationMs(finishedAt - frozenGenerationStartMs);
-    }
+    finalizeAssistantTiming(finishedAt);
 
     messages.push({
       role: "assistant",
@@ -917,25 +1057,39 @@ async function streamChat(userText, isRegenerate = false) {
     const wasAborted = err && err.name === "AbortError";
 
     if (wasAborted) {
-      if (!assistantText.trim()) {
+      const hasResponseOutput = assistantText.trim().length > 0;
+      const hasThinkingOutput = assistantThinking.trim().length > 0;
+
+      if (!hasResponseOutput && !hasThinkingOutput) {
         assistantCard.row.remove();
       } else {
         const finishedAt = Date.now();
-        assistantCard.setDurationMs(finishedAt - requestStartedMs);
+        assistantCard.setTyping(false);
+        finalizeAssistantTiming(finishedAt);
 
-        if (frozenThinkingMs === null) {
-          frozenThinkingMs = finishedAt - requestStartedMs;
-          assistantCard.setThinkingMs(frozenThinkingMs);
-          assistantCard.setGenerationMs(0);
-        } else {
-          assistantCard.setThinkingMs(frozenThinkingMs);
-          assistantCard.setGenerationMs(finishedAt - frozenGenerationStartMs);
-        }
+        if (firstContentAt !== null || hasResponseOutput) {
+          interruptedAssistantText = appendInterruptedMarker(assistantText);
+          assistantCard.setRawText(interruptedAssistantText);
 
         messages.push({
           role: "assistant",
           content: assistantText
         });
+
+          messages.push({
+            role: "system",
+            content: "⚠️ Interrupted during response generation."
+          });
+
+        } else {
+          interruptedAssistantThinking = appendInterruptedMarker(assistantThinking);
+          assistantCard.setThinkingText(interruptedAssistantThinking);
+
+          messages.push({
+            role: "system",
+            content: "⚠️ Interrupted during thinking."
+          });
+        }
       }
     } else {
       const errorMessage = err instanceof Error ? err.message : String(err);

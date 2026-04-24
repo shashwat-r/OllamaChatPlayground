@@ -306,8 +306,31 @@ textarea:focus {
   justify-content: flex-start;
 }
 
+.card-shell {
+  width: min(820px, 88%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
 .card {
-  width: min(760px, 82%);
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+  min-height: 70px;
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
   background: var(--bg-surface-2);
   border: 1px solid var(--border-strong);
   border-radius: 14px;
@@ -317,12 +340,21 @@ textarea:focus {
   min-height: 70px;
 }
 
-.row.user .card {
+.side-actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+}
+
+.row.user .card-body {
   background: var(--card-user-bg);
   border-color: var(--card-user-border);
 }
 
-.row.system .card {
+.row.system .card-body {
   background: var(--card-system-bg);
   border-color: var(--card-system-border);
 }
@@ -330,9 +362,19 @@ textarea:focus {
 /* =========================
    Thinking Block
    ========================= */
+.message-unit {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-message-meta {
+  padding: 4px 12px;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+}
+
 .thinking-box {
   display: none;
-  padding: 12px 16px;
   border-bottom: 1px solid var(--border-strong);
   background: var(--bg-surface-3);
 }
@@ -341,13 +383,59 @@ textarea:focus {
   display: block;
 }
 
-.thinking-title {
+.thinking-header,
+.end-thinking-panel,
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.thinking-title,
+.end-thinking-panel,
+.output-title {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 8px;
+}
+
+.thinking-header,
+.thinking-title,
+.end-thinking-panel {
+  cursor: pointer;
+}
+
+.end-thinking-panel {
+  width: 100%;
+  text-align: left;
+}
+
+.thinking-box:not(.has-thinking) .thinking-header,
+.thinking-box:not(.has-thinking) .thinking-title,
+.thinking-box:not(.has-thinking) .end-thinking-panel {
+  cursor: default;
+}
+
+.thinking-box.collapsed .thinking-content,
+.thinking-box.collapsed .end-thinking-panel {
+  display: none;
+}
+
+.block-copy-btn {
+  flex: 0 0 auto;
+}
+
+.output-block {
+  background: transparent;
 }
 
 .thinking-content,
@@ -358,10 +446,11 @@ textarea:focus {
 
 .thinking-content {
   color: #cfd6e6;
+  padding: 0 16px 12px 16px;
 }
 
 .content {
-  padding: 14px 16px 12px 16px;
+  padding: 0 16px 12px 16px;
 }
 
 .thinking-content p:first-child,
@@ -428,14 +517,7 @@ textarea:focus {
    Message Toolbar & Actions
    ========================= */
 .bottom-toolbar {
-  margin-top: auto;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--border-strong);
-  background: var(--bg-surface-3);
+  display: none;
 }
 
 .message-meta {
@@ -445,7 +527,6 @@ textarea:focus {
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.35;
-  margin-right: auto;
 }
 
 .message-actions {
@@ -574,6 +655,16 @@ textarea {
 }
 
 .streaming-cursor::after {
+  content: "";
+}
+
+.streaming-cursor > :last-child::after {
+  content: "▌";
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+.streaming-cursor:empty::after {
   content: "▌";
   margin-left: 2px;
   animation: blink 1s infinite;
@@ -600,8 +691,8 @@ textarea {
     max-width: 280px;
   }
 
-  .card {
-    width: min(760px, 94%);
+  .card-shell {
+    width: min(820px, 94%);
   }
 
   .composer-footer-region {
@@ -652,4 +743,11 @@ textarea {
    ========================= */
 #pullModelBtn {
   flex-shrink: 0;
+}
+
+/* =========================
+   End Thinking Panel
+   ========================= */
+.end-thinking-panel {
+  padding: 8px 12px;
 }
